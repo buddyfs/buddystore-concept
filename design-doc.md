@@ -23,102 +23,65 @@ Having a lease manager allows updates to be performed on keys with required sequ
 ## Operations :
 
 * CREATE : When a client issues a Set(key, value) 
-
-* The Client C hashes its public key
-
-* C looks up LockManager LM of the ring using the hashed key
-
-* C requests WriteLease(key)
-
-* LM verifies that there are no outstanding write leases for the same key in its lease table.
-
-    * If there is an outstanding lease that conflicts with the current request, respond with E_LOCKED. Client will retry the operation after a random period of time (with backoff).
-
-    * Else, return (next_writable_version)
-
-* C looks up for the data replicas where the key is stored using hash(key)
-
-* C broadcasts a Write(key, next_writable_version, value) to each of the replicas and waits for an acknowledgement from all of them.
-
-* If C receives all ACKs
-
-    * C sends CommitRelease(key, next_writable_version) to LM
-
-    * LM commits the version change in its table and sends an ACK to C
-
-    * All future Read requests for key at the LM will be responded to with next_writable_version
-
-    * C returns to calling process with a success code
-
-* If C does not receive all ACKs within a timeout
-
-    * C sends AbortRelease(key, next_writable_version) to LM
-
-    * C retries the write operation
-
-    * Next WriteLease to the LM will be responded to with (next_writable_version+1)
+   * The Client C hashes its public key
+   * C looks up LockManager LM of the ring using the hashed key
+   * C requests WriteLease(key)
+   * LM verifies that there are no outstanding write leases for the same key in its lease table.
+   * If there is an outstanding lease that conflicts with the current request, respond with E_LOCKED. Client will retry the operation after a random period of time (with backoff).
+   * Else, return (next_writable_version)
+   * C looks up for the data replicas where the key is stored using hash(key)
+   * C broadcasts a Write(key, next_writable_version, value) to each of the replicas and waits for an acknowledgement from all of them.
+   * If C receives all ACKs
+      * C sends CommitRelease(key, next_writable_version) to LM
+      * LM commits the version change in its table and sends an ACK to C
+      * All future Read requests for key at the LM will be responded to with next_writable_version
+      * C returns to calling process with a success code
+   * If C does not receive all ACKs within a timeout
+      * C sends AbortRelease(key, next_writable_version) to LM C retries the write operation
+      * Next WriteLease to the LM will be responded to with (next_writable_version+1)
 
 * READ : When a client issues a Get(key) the following sequence of operations ensue.
-
-* The Client C hashes its public key 
-
-* C looks up for the Lock Manager LM of the ring.
-
-* C sends a Read(key) request to LM.
-
-* LM returns the committed version of the key requested.
-
-* C looks up for the node based on the hash(key).
-
-* C sends a Read(key,version) to the resulting node N.
-
-* N returns the value for the corresponding (key,version).
+   * The Client C hashes its public key 
+   * C looks up for the Lock Manager LM of the ring.
+   * C sends a Read(key) request to LM.
+   * LM returns the committed version of the key requested.
+   * C looks up for the node based on the hash(key).
+   * C sends a Read(key,version) to the resulting node N.
+   * N returns the value for the corresponding (key,version).
 
 * JOIN : When an arbitrary node joins the system, the following operations ensue.
-
-    * According to Chord protocol, the new node looks up the Chord ring for its own node ID.
-
-    * For each public key in its constraint list, it looks up the global ring to get the list of nodes in the corresponding public key’s virtual ring.
-
-    * The new node joins all the virtual rings.
-
-    * If the new node discovers that it is the Lock Manager for that virtual ring, then it takes over as the new Lock Manager using a slightly extended protocol.
+   * According to Chord protocol, the new node looks up the Chord ring for its own node ID.
+   * For each public key in its constraint list, it looks up the global ring to get the list of nodes in the corresponding public key’s virtual ring.
+   * The new node joins all the virtual rings.
+   * If the new node discovers that it is the Lock Manager for that virtual ring, then it takes over as the new Lock Manager using a slightly extended protocol.
 
 * LEAVE : When a node leaves the system, the operations that ensue are as followed in the Chord protocol.
 
 ### Software Artifacts
 
 * Distributed KV store
-
-    * Uses the implementation of Chord lookup protocol from go-chord [2]
+   * Uses the implementation of Chord lookup protocol from go-chord [2]
 
 * Filesystem
-
-    * Uses a FUSE library implemented in Golang [3]
+   * Uses a FUSE library implemented in Golang [3]
 
 
 ### Targeted goals
 
 * Sequential Consistency
-
     * Any get operation on a key X returns the value stored by the most recent set operation on the key X
 
 * Scalability
-
     * Performance of operations on the key-value store will not appreciably deteriorate with the total number of nodes or keys in the system.
-
     * If an individual node is part of more than an empirical threshold number of rings, then the scalability guarantees might be violated. We will determine this empirical threshold during the testing phase.
 
 * Availability
-
     * Replicated copies of every key-value entry will be maintained in multiple nodes.
 
 * Fault Tolerance
-
     * Transparent migration of data to new replicas will keep the system operational in the face of failures.
 
 * Support for constraint
-
     * User will be able to control whose data it stores.
 
 ## References :
@@ -128,5 +91,3 @@ Having a lease manager allows updates to be performed on keys with required sequ
 [2] [https://github.com/armon/go-chord](https://github.com/armon/go-chord)
 
 [3] [https://github.com/bazillion/fuse](https://github.com/bazillion/fuse)
-
-
