@@ -2,8 +2,6 @@
 
 Anup Chenthamarakshan, Narendran Thangarajan, Vidya Kirupanidhi
 
-1. Current Status
-
 ## Peer-to-peer Key-Value Store Design
 
 The primary challenge in implementing a KV store in a P2P environment is that the protocol should handle arbitrary nodes joining and leaving the network. We considered classic P2P routing protocols like Kademlia, Pastry and Chord as potential lookup protocols. We chose Chord due to our familiarity with the protocol and implementation, however the proposed idea should work seamlessly over Kademlia and Pastry as well. BuddyStore is implemented as a distributed key-value store, by means of a DHT, layered on top of Chord lookup protocol. All the peers in the network will be part of a global Chord ring as found in the Chord File System [1]
@@ -88,7 +86,7 @@ Having a lease manager allows updates to be performed on keys with required sequ
 
 * LEAVE : When a node leaves the system, the operations that ensue are as followed in the Chord protocol.
 
-2. Software Artifacts
+### Software Artifacts
 
 * Distributed KV store
 
@@ -99,9 +97,7 @@ Having a lease manager allows updates to be performed on keys with required sequ
     * Uses a FUSE library implemented in Golang [3]
 
 
-3. Evaluation Criteria
-
-    We will provide basic automated tests for verifying the following properties:
+### Targeted goals
 
 * Sequential Consistency
 
