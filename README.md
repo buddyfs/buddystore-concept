@@ -8,7 +8,7 @@ The primary challenge in implementing a KV store in a P2P environment is that th
 
 In our current design, each writer has a designated "write ring" for itself (this ring is identified by the public key of the writer). So, there is a global ring with K overlapping sub-rings where K is the number of users in the system. Fig. 1 shows a ring configuration with three users in the system. Each ring corresponds to one writer (highlighted) and it contains only the nodes that have agreed to store the keys written by the writer. When the writer goes down, the remaining nodes in the corresponding ring make sure that there are f+1 replicas of all the keys at any point in time.
 
-![alt tag](https://raw2.github.com/narendran/buddystore-concept/master/images/virtual-rings.png)
+![alt tag](https://rawgithub.com/narendran/buddystore-concept/master/images/virtual-rings.png)
 Fig. 1 : Multiple Virtual Rings
 
 The global ring serves 2 purposes - looking up nodes on the network (using the default Chord lookup mechanism) and looking up writer rings (by using a lightweight DHT on top of Chord).
@@ -17,7 +17,7 @@ This design scales well since each node has to send at most O(K) messages as par
 
 Our current design uses the concept of distributed lease managers to implement atomic updates using write leases. Every sub-ring on the network has one or more logical lease managers each of which is responsible for a distinct subset of the keyspace contained in the ring. As shown in Fig. 2, a logical lease manager is a set of nodes comprising of a primary and multiple backups using the primary copy method. Logical lease managers are at well known locations on the sub-ring. Every sub-ring starts with a single lease manager and this lease manager can split the keyspace it is handling (for load balancing) by setting up additional lease managers and delegating parts of its keyspace to them. This process can be performed recursively as well.
 
-![alt tag](https://raw2.github.com/narendran/buddystore-concept/master/images/distributed-lm.png)
+![alt tag](https://rawgithub.com/narendran/buddystore-concept/master/images/distributed-lm.png)
 Fig. 2 : Distributed Lock Manager
 
 Having a lease manager allows updates to be performed on keys with required sequential consistency characteristics. Multiple simultaneous write operations on the same key are prevented by using a write lease on the key. Cases where clients holding write leases fail are handled effectively by setting very short write lease durations (on the order of minutes). In order to achieve sequential consistency, we also associate a per-key monotonically increasing version number to the value stored in every set operation.
